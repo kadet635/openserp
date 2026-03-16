@@ -30,6 +30,7 @@ func search(cmd *cobra.Command, args []string) {
 	query := core.Query{
 		Text:     args[1],
 		Limit:    10,
+		Filter:   true,
 		ProxyURL: config.App.ProxyURL,
 		Insecure: config.App.Insecure,
 	}

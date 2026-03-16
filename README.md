@@ -1,4 +1,4 @@
-# OpenSERP (Search Engine Results Page)
+# OpenSERP (Search Engine Results)
 
 ![OpenSERP](/logo.svg)
 
@@ -8,7 +8,7 @@
 
 <!--[![Docker Pulls](https://img.shields.io/docker/pulls/karust/openserp)](https://hub.docker.com/repository/docker/karust/openserp)-->
 
-**OpenSERP** provides free API access to multiple search engines including **[Google, Yandex, Baidu, Bing, DuckDuckGo]**. Get comprehensive search results without expensive API subscriptions!
+**OpenSERP** provides free API and CLI access to multiple search engines including **[Google, Yandex, Baidu, Bing, DuckDuckGo]**. Get comprehensive search results without expensive API subscriptions!
 
 ## Features
 
@@ -75,8 +75,8 @@ curl "http://localhost:7000/mega/search?text=Donald+Trump&engines=duckduckgo,bin
   {
     "rank": 2,
     "url": "https://www.bing.com/ck/a?!&&p=6f15ac4589858d0a104cd6f55cc8e91e8d8d6da91f905b626921f67f2323a467JmltdHM9MTc1OTE5MDQwMA&ptn=3&ver=2&hsh=4&fclid=2357c2f4-6131-68de-359f-d48c607c691d&u=a1aHR0cHM6Ly93d3cuZ29sZGVucmV0cmlldmVyZm9ydW0uY29tL3RocmVhZHMvdW5kZXJzdGFuZGluZy13aHktZ29sZGVuLXJldHJpZXZlciVFMiU4MCU5OXMtbGlmZXNwYW4taGFsdmVkLWluLXRoZS1sYXN0LTM1LXllYXJzLjM1NzMyMi8&ntb=1",
-    "title": "Golden Retriever Dog Forums\nhttps://www.goldenretrieverforum.com › threads › understanding-why-g…",
-    "description": "Oct 20, 2024 · Back in the 1970s, Golden Retrievers routinely lived until 16 and 17 years old, they are now living until 9 or 10 years old. Golden Retrievers seem to be dying mostly of bone …",
+    "title": "Golden Retriever Dog Forums\nhttps://www.goldenretrieverforum.com › threads › understanding-why-g...",
+    "description": "Oct 20, 2024 · Back in the 1970s, Golden Retrievers routinely lived until 16 and 17 years old, they are now living until 9 or 10 years old. Golden Retrievers seem to be dying mostly of bone ...",
     "ad": false,
     "engine": "bing"
   },
@@ -119,7 +119,14 @@ curl "http://localhost:7000/mega/engines"
 | `file`    | File extension       | `PDF`, `DOC`, `XLS`               |
 | `site`    | Site-specific search | `github.com`, `stackoverflow.com` |
 | `limit`   | Number of results    | `10`, `25`, `50`                  |
-| `answers` | Include Q&A results  | `true`, `false`                   |
+
+### Engine-Specific Parameters
+
+| Parameter | Supported engines                   | Notes                                                                  |
+| --------- | ----------------------------------- | ---------------------------------------------------------------------- |
+| `start`   | `google`, `bing`, `yandex`, `baidu` | Web search pagination offset.                                          |
+| `filter`  | `google`                            | Duplicate filter (`true` => hide similar, `false` => include similar). |
+| `answers` | `google`                            | Include Google answer boxes in output (negative ranks).                |
 
 ### Individual Engine Examples
 
@@ -129,6 +136,15 @@ curl "http://localhost:7000/duck/search?text=golang&limit=7"
 
 # Google search
 curl "http://localhost:7000/google/search?text=golang&lang=EN&limit=10"
+
+# Google search (pagination + include similar/hidden results)
+curl "http://localhost:7000/google/search?text=golang&lang=EN&limit=10&start=10&filter=false"
+
+# Bing search (offset 20 => around page 3 for 10 results/page)
+curl "http://localhost:7000/bing/search?text=golang&limit=10&start=20"
+
+# Yandex search (offset 10 => second page)
+curl "http://localhost:7000/yandex/search?text=golang&limit=10&start=10"
 ```
 
 ### Image Search
@@ -152,6 +168,24 @@ OpenSERP supports HTTP and SOCKS5 proxies with authentication:
 # HTTP proxy with authentication
 ./openserp search bing "query" --proxy http://user:pass@127.0.0.1:8080
 ```
+
+## Health Check
+
+```bash
+curl -i "http://127.0.0.1:7000/health"
+```
+
+Response includes:
+
+- `status`: `healthy`, `degraded`, or `unhealthy`
+- `uptime`
+- per-engine readiness in `engines`
+- basic runtime stats in `system`
+
+HTTP status behavior:
+
+- `200` for `healthy` and `degraded`
+- `503` for `unhealthy`
 
 ## License
 

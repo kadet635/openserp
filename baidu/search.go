@@ -131,7 +131,7 @@ func (baid *Baidu) Search(query core.Query) ([]core.SearchResult, error) {
 		}
 		desc = strings.ReplaceAll(desc, title, "")
 
-		gR := core.SearchResult{Rank: i + 1, URL: linkText.String(), Title: title, Description: desc}
+		gR := core.SearchResult{Rank: query.Start + i + 1, URL: linkText.String(), Title: title, Description: desc}
 		searchResults = append(searchResults, gR)
 	}
 

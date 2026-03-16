@@ -113,9 +113,11 @@ func (gogl *Google) checkCaptcha(page *rod.Page) bool {
 
 func (gogl *Google) preparePage(page *rod.Page) {
 	// Remove "similar queries" lists
-	_, err := page.Eval(";(() => { document.querySelectorAll(`div[data-initq]`).forEach( el => el.remove());  })();")
+	_, err := page.Eval(`() => {
+		document.querySelectorAll("div[data-initq]").forEach((el) => el.remove())
+	}`)
 	if err != nil {
-		gogl.logger.Error("Page preparation failed: %s", err)
+		gogl.logger.Debug("Page preparation skipped: %s", err)
 	}
 }
 
@@ -185,7 +187,7 @@ func (gogl *Google) Search(query core.Query) ([]core.SearchResult, error) {
 		return nil, err
 	}
 
-	rank := 0
+	rank := query.Start
 	for _, resEl := range searchResultElems {
 		srchRes := core.SearchResult{}
 

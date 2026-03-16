@@ -115,9 +115,17 @@ func (yand *Yandex) parseResults(results rod.Elements, pageNum int) []core.Searc
 
 func (yand *Yandex) Search(query core.Query) ([]core.SearchResult, error) {
 	yand.logger.Debug("Starting search, query: %+v", query)
+	if query.Start < 0 {
+		return nil, fmt.Errorf("incorrect start provided")
+	}
 
 	allResults := []core.SearchResult{}
-	searchPage := 0
+	const pageSize = 10
+	searchPage, skipOnFirstPage, err := core.ComputePagination(query.Start, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	startPage := searchPage
 
 	for len(allResults) < query.Limit {
 		url, err := BuildURL(query, searchPage)
@@ -158,6 +166,13 @@ func (yand *Yandex) Search(query core.Query) ([]core.SearchResult, error) {
 		}
 
 		r := yand.parseResults(elements, searchPage)
+		if searchPage == startPage && skipOnFirstPage > 0 {
+			if skipOnFirstPage >= len(r) {
+				r = []core.SearchResult{}
+			} else {
+				r = r[skipOnFirstPage:]
+			}
+		}
 		allResults = append(allResults, r...)
 
 		searchPage++

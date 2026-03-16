@@ -162,6 +162,12 @@ func Search(query core.Query) ([]core.SearchResult, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if query.Start > 0 {
+		for i := range results {
+			results[i].Rank = query.Start + i + 1
+		}
+	}
 	logrus.Debugf("Google Raw results : %v", results)
 
 	return results, nil

@@ -259,6 +259,19 @@ func BuildURL(q core.Query) (string, error) {
 		params.Add("num", strconv.Itoa(q.Limit))
 	}
 
+	// Set result offset for pagination
+	if q.Start < 0 {
+		return "", errors.New("incorrect start param provided")
+	}
+	if q.Start > 0 {
+		params.Add("start", strconv.Itoa(q.Start))
+	}
+
+	// Google default is filter=1; send only when user asks to include similar results.
+	if !q.Filter {
+		params.Add("filter", "0")
+	}
+
 	if q.LangCode != "" {
 		params.Add("hl", q.LangCode)
 		params.Add("lr", "lang_"+strings.ToLower(q.LangCode))

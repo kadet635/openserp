@@ -120,7 +120,12 @@ func yandexResultParser(response *http.Response) ([]core.SearchResult, error) {
 }
 
 func Search(query core.Query) ([]core.SearchResult, error) {
-	googleURL, err := BuildURL(query, 1)
+	startPage, skipOnFirstPage, err := core.ComputePagination(query.Start, 10)
+	if err != nil {
+		return nil, err
+	}
+
+	googleURL, err := BuildURL(query, startPage)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +140,19 @@ func Search(query core.Query) ([]core.SearchResult, error) {
 	results, err := yandexResultParser(res)
 	if err != nil {
 		return nil, err
+	}
+
+	if skipOnFirstPage > 0 {
+		if skipOnFirstPage >= len(results) {
+			results = []core.SearchResult{}
+		} else {
+			results = results[skipOnFirstPage:]
+		}
+	}
+	if query.Start > 0 {
+		for i := range results {
+			results[i].Rank = query.Start + i + 1
+		}
 	}
 	logrus.Debugf("Yandex Raw results : %v", results)
 

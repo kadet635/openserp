@@ -66,6 +66,13 @@ func BuildURL(q core.Query) (string, error) {
 	if q.Limit != 0 {
 		params.Add("rn", strconv.Itoa(q.Limit))
 	}
+	if q.Start < 0 {
+		return "", errors.New("incorrect start provided")
+	}
+	if q.Start > 0 {
+		// Baidu uses "pn" as result offset for pagination.
+		params.Add("pn", strconv.Itoa(q.Start))
+	}
 
 	if len(params.Get("wd")) == 0 {
 		return "", errors.New("Empty query built")

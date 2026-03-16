@@ -43,8 +43,15 @@ func BuildURL(q core.Query) (string, error) {
 		params.Add("setlang", strings.ToLower(q.LangCode))
 	}
 
-	// Set result offset (pagination) - Bing uses "first" parameter
-	if q.Limit > 0 {
+	// Set result offset (pagination) - Bing uses "first" parameter.
+	// When first is present, Bing may ignore custom count and return default page size.
+	if q.Start < 0 {
+		return "", errors.New("incorrect start provided")
+	}
+	if q.Start > 0 {
+		// Bing uses 1-based first-result index for pagination.
+		params.Add("first", strconv.Itoa(q.Start+1))
+	} else if q.Limit > 0 {
 		params.Add("count", strconv.Itoa(q.Limit))
 	}
 

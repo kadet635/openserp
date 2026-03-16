@@ -60,9 +60,21 @@ type Query struct {
 	Filetype     string // File extension to search.
 	Site         string // Search site
 	Limit        int    // Limit the number of results
+	Start        int    // Search offset for pagination (Google uses 0, 10, 20...)
+	Filter       bool   // Filter duplicates (google) (false: include similar, true: hide similar)
 	Answers      bool   // Include question and answers from SERP page to results with negative indexes
 	ProxyURL     string // Proxy URL for raw requests
 	Insecure     bool   // Allow insecure TLS connections
+}
+
+func ComputePagination(start int, pageSize int) (int, int, error) {
+	if pageSize <= 0 {
+		return 0, 0, errors.New("pageSize must be > 0")
+	}
+	if start < 0 {
+		return 0, 0, errors.New("start must be >= 0")
+	}
+	return start / pageSize, start % pageSize, nil
 }
 
 func (q Query) IsEmpty() bool {
@@ -84,6 +96,20 @@ func (searchQuery *Query) InitFromContext(reqCtx *fiber.Ctx) error {
 		return err
 	}
 	searchQuery.Limit = limit
+
+	start, err := strconv.Atoi(reqCtx.Query("start", "0"))
+	if err != nil {
+		return err
+	}
+	if start < 0 {
+		return errors.New("start must be >= 0")
+	}
+	searchQuery.Start = start
+
+	searchQuery.Filter, err = strconv.ParseBool(reqCtx.Query("filter", "1"))
+	if err != nil {
+		return err
+	}
 
 	searchQuery.Answers, err = strconv.ParseBool(reqCtx.Query("answers", "0"))
 	if err != nil {

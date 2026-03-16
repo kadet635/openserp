@@ -140,7 +140,7 @@ func (bing *Bing) Search(query core.Query) ([]core.SearchResult, error) {
 	}
 	bing.logger.Info("Found %d results (%d ads)", totalResults, len(adElements))
 
-	rank := 0
+	rank := query.Start
 	for _, result := range organicElements {
 		srchRes := core.SearchResult{}
 
