@@ -80,6 +80,7 @@ func serve(cmd *cobra.Command, args []string) {
 		Timeout:             time.Second * time.Duration(config.App.Timeout),
 		LeavePageOpen:       config.App.IsLeaveHead,
 		CaptchaSolverApiKey: config.Config2Capcha.ApiKey,
+		BrowserPath:         config.App.BrowserPath,
 		ProxyURL:            config.App.ProxyURL,
 		Insecure:            config.App.Insecure,
 		UseStealth:          config.App.IsStealth,

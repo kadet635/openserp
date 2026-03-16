@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version               = "0.5.5"
+	version               = "0.5.6"
 	defaultConfigFilename = "config"
 	envPrefix             = "OPENSERP"
 )
@@ -37,6 +37,7 @@ type AppConfig struct {
 	Port          int    `mapstructure:"port"`
 	Timeout       int    `mapstructure:"timeout"`
 	ConfigPath    string `mapstructure:"config_path"`
+	BrowserPath   string `mapstructure:"browser_path"`
 	IsBrowserHead bool   `mapstructure:"head"`
 	IsLeaveHead   bool   `mapstructure:"leave_head"`
 	IsLeakless    bool   `mapstructure:"leakless"`
@@ -52,6 +53,7 @@ var config = Config{}
 
 var flagToConfigKey = map[string]string{
 	"config":       "app.config_path",
+	"browser-path": "app.browser_path",
 	"leave":        "app.leave_head",
 	"raw":          "app.raw_requests",
 	"2captcha_key": "2captcha.apikey",
@@ -163,6 +165,7 @@ func init() {
 	RootCmd.PersistentFlags().StringVarP(&config.App.Host, "host", "a", "127.0.0.1", "Host address to run server")
 	RootCmd.PersistentFlags().IntVarP(&config.App.Timeout, "timeout", "t", 30, "Timeout to fail request")
 	RootCmd.PersistentFlags().StringVarP(&config.App.ConfigPath, "config", "c", "", "Configuration file path")
+	RootCmd.PersistentFlags().StringVarP(&config.App.BrowserPath, "browser-path", "", "", "Custom browser binary path (Chrome/Chromium/Edge/Brave..)")
 	RootCmd.PersistentFlags().BoolVarP(&config.App.IsVerbose, "verbose", "v", false, "Use verbose output")
 	RootCmd.PersistentFlags().BoolVarP(&config.App.IsDebug, "debug", "d", false, "Use debug output. Disable headless browser")
 	RootCmd.PersistentFlags().BoolVarP(&config.App.IsBrowserHead, "head", "", false, "Enable browser UI")

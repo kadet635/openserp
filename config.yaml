@@ -10,6 +10,9 @@ app:
   stealth: false
   insecure: true
 
+  # Optional custom browser binary path (chrome/chromium/edge..)
+  #browser_path: "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+
 2captcha:
   apikey: "123123123123123"
 

@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -23,6 +24,7 @@ type BrowserOpts struct {
 	LeavePageOpen       bool          // Leave pages and browser open
 	WaitLoadTime        time.Duration // Time to wait till page loads
 	CaptchaSolverApiKey string        // 2Captcha api key
+	BrowserPath         string        // Explicit browser executable path
 	ProxyURL            string        // Proxy URL
 	Insecure            bool          // Allow insecure TLS connections
 	UseStealth          bool          // Use go-rod stealth plugin
@@ -51,12 +53,18 @@ func NewBrowser(opts BrowserOpts) (*Browser, error) {
 	opts.Check()
 	logrus.Debugf("Browser options: %+v", opts)
 
-	path, has := launcher.LookPath()
-	logrus.Debug("Browser found: ", has)
+	path, err := resolveBrowserBinaryPath(opts.BrowserPath, launcher.LookPath)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create launcher
-	l := launcher.New().Bin(path).Leakless(opts.IsLeakless).Headless(opts.IsHeadless).Set("disable-blink-features", "AutomationControlled").
+	l := launcher.New().Leakless(opts.IsLeakless).Headless(opts.IsHeadless).Set("disable-blink-features", "AutomationControlled").
 		Delete("enable-automation")
+	if path != "" {
+		logrus.Debugf("Using browser binary: %s", path)
+		l = l.Bin(path)
+	}
 
 	// Configure proxy if specified
 	if opts.ProxyURL != "" {
@@ -79,7 +87,6 @@ func NewBrowser(opts BrowserOpts) (*Browser, error) {
 		}
 	}
 
-	var err error
 	b := Browser{BrowserOpts: opts}
 	b.browserAddr, err = l.Launch()
 
@@ -89,6 +96,35 @@ func NewBrowser(opts BrowserOpts) (*Browser, error) {
 	}
 
 	return &b, err
+}
+
+func validateBrowserBinaryPath(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return fmt.Errorf("path points to a directory")
+	}
+	return nil
+}
+
+// resolveBrowserBinaryPath prefers an explicit browser path. If no explicit path is provided,
+// it falls back to launcher autodiscovery and lets Rod handle auto-download when no binary is found.
+func resolveBrowserBinaryPath(browserPath string, lookPath func() (string, bool)) (string, error) {
+	if browserPath != "" {
+		if err := validateBrowserBinaryPath(browserPath); err != nil {
+			return "", fmt.Errorf("invalid browser_path %q: %w", browserPath, err)
+		}
+		return browserPath, nil
+	}
+
+	path, has := lookPath()
+	if has {
+		return path, nil
+	}
+
+	return "", nil
 }
 
 // Check whether browser instance is already created
